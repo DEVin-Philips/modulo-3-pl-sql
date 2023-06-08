@@ -125,11 +125,127 @@ BEGIN
     END LOOP;
 END;
 
---SELECT Numero FROM Exemplo;
---CREATE TABLE Exemplo(Numero NUMBER(1));
---SELECT Numero FROM Exemplo;
---INSERT INTO Exemplo(Numero) VALUES(9);
+--FORALL Example
+
+--Bloco 1 para criar a tabela
+
+CREATE TABLE Exemplo2 (Nome VARCHAR2(100));
+
+--Bloco 2 para executar
+
+DECLARE 
+    TYPE string_array IS TABLE OF VARCHAR2(100);
+    nomes string_array := string_array('NOME UM', 'NOME DOIS', 'NOME TRES');
+BEGIN
+    FORALL contador IN 1..nomes.COUNT
+        INSERT INTO Exemplo2(Nome) VALUES(nomes(contador));
+    DBMS_OUTPUT.put_line('Registro(s) Inserido(s) ' || nomes.COUNT);
+    COMMIT;
+END;
+
+-- EXIT
+
+BEGIN
+    FOR contador IN 1..100 LOOP
+        DBMS_OUTPUT.put_line('Imprimir o conador ' || contador);
+        
+        IF contador = 50 THEN
+            DBMS_OUTPUT.put_line('Sair ao chegar ao numero ' || contador);
+            EXIT;
+        END IF;
+    END LOOP;
+END;
 
 -- Aula 3
+
+-- GOTO 
+
+BEGIN
+    FOR contador IN 1..100 LOOP
+        DBMS_OUTPUT.put_line('Imprimir o contador ' || contador);
+        
+        IF contador = 3 THEN
+            DBMS_OUTPUT.put_line('Sair ao chegar ao numero ' || contador);
+            GOTO mensagem_teste_sem_if;
+            
+            DBMS_OUTPUT.put_line('Pulou essa linha');
+            
+            <<mensagem_teste_sem_if>>
+            DBMS_OUTPUT.put_line('Contador nao passou pelo IF ' || contador);
+            
+            GOTO mensagem_teste;
+        END IF;
+    END LOOP;
+    
+    <<mensagem_teste>>
+    DBMS_OUTPUT.put_line('For chegou no número 3 e chamou o GOTO mensagem_teste');
+    
+END;
+
+-- WHILE
+
+DECLARE 
+    contador NUMBER := 0;
+BEGIN
+    WHILE contador = 0 LOOP
+        DBMS_OUTPUT.put_line('Imprimir o contador ' || contador);
+        contador := contador + 2;
+    END LOOP;    
+END;
+
+-- Emulando o REPEAT LOOP
+
+-- Utilizando IF com EXIT
+
+DECLARE 
+    contador NUMBER := 1;
+BEGIN
+    LOOP 
+        DBMS_OUTPUT.put_line('Imprimir o contador ' || contador);
+        contador := contador + 1;
+        IF contador > 10 THEN
+            EXIT;
+        END IF;
+    END LOOP;
+END;
+
+
+-- Utilizando EXIT WHEN 
+DECLARE 
+    contador NUMBER := 1;
+BEGIN
+    LOOP 
+        DBMS_OUTPUT.put_line('Imprimir o contador ' || contador);
+        contador := contador + 1;
+        EXIT WHEN contador > 10;
+    END LOOP;
+END;
+
+-- Exemplo mais complexo
+
+Bloco 1
+
+CREATE TABLE DM_ValorProdutoVendidos(IdProduto NUMBER NOT NULL, SomaValorVenda NUMBER(10, 2) NOT NULL);
+
+Bloco 2
+
+DECLARE 
+    valorVendaSomada NUMBER(10, 2);
+BEGIN
+    
+    DELETE FROM DM_ValorProdutoVendidos;
+    
+    FOR produto IN (SELECT Id FROM Produto) LOOP
+        valorVendaSomada := 0;
+        
+        FOR produtoVendido IN (SELECT * FROM Orcamento WHERE IdProduto = produto.Id) LOOP
+            valorVendaSomada := produtoVendido.ValorVenda + valorVendaSomada;
+        END LOOP;
+        
+        IF valorVendaSomada > 0 THEN 
+            INSERT INTO DM_ValorProdutoVendidos(IdProduto, SomaValorVenda) VALUES (produto.Id, valorVendaSomada);
+        END IF;
+    END LOOP;    
+END;
 
 -- Aula 4
