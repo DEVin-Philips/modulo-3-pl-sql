@@ -73,3 +73,84 @@ END;
 -- Bloco 2 Para validar
 SELECT SUM(ValorVenda),  COUNT(*) FROM Orcamento WHERE IdProduto = 10;
 
+
+-- Example Criado pelo Rodolfo
+
+DECLARE
+    CURSOR cProduto is SELECT ID FROM PRODUTO;
+    CURSOR cProdPreco is SELECT IDPRODUTO, VALORVENDA FROM ORCAMENTO;
+    nID NUMBER(18);
+    nIDPROD NUMBER(18);
+    nVALOR NUMBER(18,3):=0;
+    nTOTAL NUMBER(18,3):=0;
+
+BEGIN
+    OPEN cProduto;
+        LOOP
+            FETCH cProduto INTO nID;
+            EXIT WHEN cProduto%NOTFOUND;
+                OPEN cProdPreco;
+                nTOTAL := 0;
+                
+                LOOP
+                    FETCH cProdPreco INTO nIDPROD, nVALOR;
+                    EXIT WHEN cProdPreco%NOTFOUND;
+
+                    IF(nIDPROD = nID) THEN
+                        nTOTAL := nTOTAL + nVALOR;
+                    END IF;
+                END LOOP;
+
+                DBMS_OUTPUT.put_line('PRODUTO ' || nID || ' - ' || nTOTAL);
+            CLOSE cProdPreco;
+        END LOOP;
+    CLOSE cProduto;
+END;
+
+-- Aula 2
+
+-- EXCEPTION Example UM
+
+DECLARE 
+    vDivisor NUMBER := 0;
+    vResultado NUMBER := 0;
+    vValor VARCHAR2(100) := 'teste';
+
+BEGIN
+    vResultado := to_number(vValor) / vdivisor;
+
+EXCEPTION
+    WHEN ZERO_DIVIDE THEN
+        DBMS_OUTPUT.PUT_LINE('Erro: Divisão por zero.'); 
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Erro: NÃO SEI O O QUE É'); 
+        DBMS_OUTPUT.PUT_LINE('Erro: Nr do Erro gerado' || SQLCODE);
+        DBMS_OUTPUT.PUT_LINE('Mensagem Oracle: ' || SQLERRM);
+END;
+
+-- Exception Customizada
+
+DECLARE 
+    vContador NUMBER := 0;
+    vMinhaException EXCEPTION;
+
+    PRAGMA EXCEPTION_INIT(vMinhaException, -29055);
+    
+BEGIN
+    SELECT COUNT(*) INTO vContador FROM Produto;
+    
+    IF vContador = 10 THEN
+        RAISE vMinhaException;
+    END IF;
+    
+    DBMS_OUTPUT.PUT_LINE('Contador Total de Produtos ' || vContador); 
+
+EXCEPTION
+    WHEN vMinhaException THEN
+        DBMS_OUTPUT.PUT_LINE('Erro Customizado: Contador não pode ser igual a 10'); 
+        DBMS_OUTPUT.PUT_LINE('Erro: Nr do Erro gerado' || SQLCODE);
+        DBMS_OUTPUT.PUT_LINE('Mensagem Oracle: ' || SQLERRM);
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Erro: Nr do Erro gerado' || SQLCODE);
+        DBMS_OUTPUT.PUT_LINE('Mensagem Oracle: ' || SQLERRM);
+END;
