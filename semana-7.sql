@@ -154,3 +154,123 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Erro: Nr do Erro gerado' || SQLCODE);
         DBMS_OUTPUT.PUT_LINE('Mensagem Oracle: ' || SQLERRM);
 END;
+
+-- Aula 3 
+-- Exemplo 01 Procedure
+
+CREATE OR REPLACE PROCEDURE Exemplo
+IS
+   vContador NUMBER := 0;
+BEGIN
+    SELECT COUNT(*) INTO vContador FROM Produto;
+    
+    DBMS_OUTPUT.PUT_LINE('Contador ' || vContador); 
+END;
+
+-- Exemplo 2 recebendo IN dos parametros
+
+--Criar uma procedure de update de produtos e devolver o valor antigo
+--pNomeVariavel = Parametro da Procedure
+--nNomeVarivel Number 
+--vNomeVariavel VARCHAR
+-- Pegando o tipo da coluna conforme a estrutura Tabela.Coluna%Type
+    -- Exemplo   Produto.Valor%Type igual a delcaração do tipo  NUMBER
+CREATE OR REPLACE PROCEDURE AtualizarPrecoProduto(pIdProduto IN VARCHAR, pValorProduto IN Produto.Valor%Type) IS
+BEGIN
+    UPDATE Produto SET Valor = pValorProduto WHERE Id = TO_NUMBER(pIdProduto);
+END;
+
+
+-- Exemplo 3
+
+--Criar uma procedure de update de produtos e devolver o valor antigo
+--pNomeVariavel = Parametro da Procedure
+--nNomeVarivel Number 
+--vNomeVariavel VARCHAR
+-- Pegando o tipo da coluna conforme a estrutura Tabela.Coluna%Type
+    -- Exemplo   Produto.Valor%Type igual a delcaração do tipo  NUMBER
+CREATE OR REPLACE PROCEDURE AtualizarPrecoProduto(pIdProduto IN Produto.Valor%Type, pValorProduto IN Produto.Valor%Type) IS
+BEGIN
+    UPDATE Produto SET Valor = pValorProduto WHERE Id = pIdProduto;
+END;
+
+
+-- Formato de execuções 
+-- Exemplo 1
+DECLARE
+  PIDPRODUTO NUMBER;
+  PVALORPRODUTO NUMBER(12, 2);
+BEGIN
+  PIDPRODUTO := 1;
+  PVALORPRODUTO := 30.99;
+
+  ATUALIZARPRECOPRODUTO(PIDPRODUTO, PVALORPRODUTO);
+END;
+
+-- Exemplo 2 - NÃO Esquecer que decimal precisa estar entre '0,12'
+BEGIN
+  ATUALIZARPRECOPRODUTO(1, '30,99');
+END;
+
+--Exemplo 3
+
+DECLARE
+  PIDPRODUTO NUMBER;
+  PVALORPRODUTO NUMBER;
+BEGIN
+  PIDPRODUTO := 1;
+  PVALORPRODUTO := 30.99;
+
+  ATUALIZARPRECOPRODUTO(
+    PIDPRODUTO => PIDPRODUTO,
+    PVALORPRODUTO => PVALORPRODUTO
+  );
+END;
+
+
+-- Exemplo de uma Procedure complexa
+-- PROCEDURE 1
+
+CREATE OR REPLACE PROCEDURE AtualizarPrecoProduto(pIdProduto IN Produto.Valor%Type, pValorProduto IN Produto.Valor%Type, pMensagem OUT VARCHAR) IS
+    nValorAntigo NUMBER(12,2);
+    
+BEGIN
+    SELECT Valor INTO nValorAntigo FROM Produto WHERE Id = pIdProduto;
+    UPDATE Produto SET Valor = pValorProduto WHERE Id = pIdProduto;
+    
+    IF pIdProduto = 3 THEN
+        pMensagem := 'Erro';
+    ELSE
+        pMensagem := 'ATUALIZAÇÃO FEITA COM SUCESSO, SEGUE O VALOR ANTIGO DO PRODUTO ' || nValorAntigo;
+    END IF;
+END;
+
+
+-- PROCEDURE 2
+
+CREATE OR REPLACE PROCEDURE AtulizarPrecoAnual IS
+  PIDPRODUTO NUMBER;
+  PVALORPRODUTO NUMBER;
+  PMENSAGEM VARCHAR2(200);
+  
+BEGIN  
+    FOR itemProduto IN (SELECT Id, Valor FROM Produto) LOOP
+        DBMS_OUTPUT.PUT_LINE('Id Produto : ' || itemProduto.Id);
+
+        PIDPRODUTO := itemProduto.Id;
+        PVALORPRODUTO := itemProduto.Valor * 0.05;
+
+        ATUALIZARPRECOPRODUTO(PIDPRODUTO, PVALORPRODUTO, PMENSAGEM);
+        
+        IF PMENSAGEM = 'Erro' THEN
+            DBMS_OUTPUT.PUT_LINE('Erro no produto' || itemProduto.Id);
+            EXIT;
+        END IF;
+        
+    END LOOP;
+END;
+
+
+-- CHAMADA DA PROCEDURE 2 NO BLOCO DE CÓDIGO
+
+EXECUTE AtulizarPrecoAnual;
