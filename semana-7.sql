@@ -274,3 +274,59 @@ END;
 -- CHAMADA DA PROCEDURE 2 NO BLOCO DE CÓDIGO
 
 EXECUTE AtulizarPrecoAnual;
+
+
+-- Aula 4
+-- Exemplo Um Procedure 
+
+CREATE OR REPLACE PROCEDURE CALCULARMEDIAPRODUTOSVENDIDOS
+IS
+    nTotalVendas NUMBER := 0.0;
+    nContador    NUMBER := 0;
+    nMedia       NUMBER := 0.0;
+BEGIN
+    
+    FOR produtosVendidos IN (SELECT ValorVenda, Quantidade FROM Orcamento) LOOP
+      nTotalVendas := nTotalVendas + (produtosVendidos.ValorVenda / produtosVendidos.Quantidade);
+      nContador := nContador + 1;
+    END LOOP;
+    
+    --SELECT COUNT(*) INTO nContador FROM Orcamento;
+    
+    IF nContador > 0 THEN
+        nMedia := nTotalVendas / nContador;
+        DBMS_OUTPUT.PUT_LINE('Média dos produtos Sem ROUND ' || nMedia);
+        nMedia := ROUND(nMedia, 2);
+        DBMS_OUTPUT.PUT_LINE('Média dos produtos Com ROUND ' || nMedia);
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Erro no calculo da média');    
+END;
+
+--- Fim Exemplo Um
+
+-- Exemplo Dois
+
+--Criar procedure com cursor para atualizar produtos exclusivos
+
+CREATE OR REPLACE PROCEDURE AtualizarOrcamentoParaAmigos(pId NUMBER, pValorVenda NUMBER, pQuantidade NUMBER, pMensagem OUT VARCHAR2) 
+IS
+    CURSOR cValidarOrcamento IS SELECT Id FROM Orcamento WHERE Id = pId;
+    nId NUMBER;
+BEGIN
+    pMensagem := 'Atualização Não efetuada';
+    
+    OPEN cValidarOrcamento;
+        LOOP
+            FETCH cValidarOrcamento INTO nId;
+                EXIT WHEN cValidarOrcamento%NOTFOUND;
+                
+                UPDATE Orcamento SET ValorVenda = pValorVenda, Quantidade = pQuantidade WHERE Id = pId;
+                pMensagem := 'ATUALIZA COM SUCESSO';
+        END LOOP;
+    CLOSE cValidarOrcamento;
+END;
+
+-- Fim Exemplo Dois
