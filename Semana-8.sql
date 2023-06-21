@@ -142,6 +142,7 @@ AS
 SELECT * FROM BuscarDadosProdutosSimples;
 SELECT * FROM BuscarDadosProdutosSimples WHERE ID = 5;
 INSERT INTO BuscarDadosProdutosSimples(ID, DESCRICAO, VALOR, CADASTRO) VALUES (11, 'TESTE', 10, SYSDATE)
+SELECT * FROM PRODUTO WHERE ID = 11
 DELETE FROM BuscarDadosProdutosSimples WHERE ID = 11
 
 -- Criação de View Simples por linha de comando devolvendo o ALIAS alteradado para cada coluna
@@ -172,4 +173,37 @@ END;
 
 --
 
+-- Exemplo WITH READ ONLY
 
+CREATE OR REPLACE VIEW BuscarProdutoLeitura
+AS
+    SELECT ID, Descricao, Valor, Cadastro FROM PRODUTO WITH READ ONLY;
+
+SELECT * FROM BuscarProdutoLeitura WHERE ID = 5
+
+/* QUando exeuctado o INSERT, UPDATE, DELETE o  ORACLE não permiti efetuar tais comandos */
+INSERT INTO BuscarProdutoLeitura(ID, DESCRICAO, VALOR, CADASTRO) VALUES (11, 'TESTE', 10, SYSDATE)
+DELETE FROM BuscarProdutoLeitura WHERE ID = 11
+
+-- 
+
+-- Exemplo 
+
+CREATE OR REPLACE VIEW BuscarProdutoComMenorValor
+AS
+    SELECT ID, Descricao, Valor, Cadastro 
+    FROM PRODUTO 
+    WHERE Valor < 100 
+    WITH CHECK OPTION;
+
+
+SELECT * FROM BUSCARPRODUTOCOMMENORVALOR;
+-- 5, 8, 9 -- valores 1500,00  
+
+INSERT INTO BUSCARPRODUTOCOMMENORVALOR(ID, DESCRICAO, VALOR, CADASTRO) VALUES (11, 'TESTE', 2000, SYSDATE);
+
+DELETE FROM BUSCARPRODUTOCOMMENORVALOR WHERE ID = 11
+
+SELECT * FROM PRODUTO WHERE ID = 11
+
+UPDATE BUSCARPRODUTOCOMMENORVALOR SET Valor = 10 WHERE ID = 11
