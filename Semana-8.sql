@@ -127,3 +127,49 @@ END;
 
 
 --
+
+-- Aula 2 View
+
+-- Criação de View Simples por linha de comando
+
+-- BLOCO 1
+CREATE OR REPLACE VIEW BuscarDadosProdutosSimples
+AS
+    SELECT ID, Descricao, Valor, Cadastro FROM PRODUTO
+
+
+-- BLOCO 2
+SELECT * FROM BuscarDadosProdutosSimples;
+SELECT * FROM BuscarDadosProdutosSimples WHERE ID = 5;
+INSERT INTO BuscarDadosProdutosSimples(ID, DESCRICAO, VALOR, CADASTRO) VALUES (11, 'TESTE', 10, SYSDATE)
+DELETE FROM BuscarDadosProdutosSimples WHERE ID = 11
+
+-- Criação de View Simples por linha de comando devolvendo o ALIAS alteradado para cada coluna
+
+--BLOCO 1
+
+CREATE OR REPLACE VIEW BuscarDadosProdutosAllias(CAMPO_ID, CAMPO_TEXTO, CAMPO_PRECO, CAMPO_INCLUSAO)
+AS
+    SELECT ID, Descricao, Valor, Cadastro FROM PRODUTO;
+
+-- BLOCO 2
+
+SELECT * FROM BuscarDadosProdutosAllias WHERE CAMPO_ID = 5;
+
+-- BLOCO 3 VIEW e FUNCTION
+
+DECLARE
+    dataExemplo DATE;
+    percentualReajuste VARCHAR2(10);
+BEGIN
+    dataExemplo  := TO_Date('02/01/2020', 'dd/MM/YYYY');
+    percentualReajuste := '0,02';
+    
+    FOR produto IN (SELECT CAMPO_ID FROM BuscarDadosProdutosAllias) LOOP
+       DBMS_OUTPUT.PUT_LINE('ID Tabela' ||  produto.CAMPO_ID || ' REAJUSTE ' ||  RECARCULARPRECOPRODUTO(produto.CAMPO_ID, percentualReajuste, dataExemplo));
+    END LOOP;
+END;
+
+--
+
+
