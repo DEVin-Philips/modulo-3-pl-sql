@@ -207,3 +207,196 @@ DELETE FROM BUSCARPRODUTOCOMMENORVALOR WHERE ID = 11
 SELECT * FROM PRODUTO WHERE ID = 11
 
 UPDATE BUSCARPRODUTOCOMMENORVALOR SET Valor = 10 WHERE ID = 11
+
+-- AULA 3 Trigger
+
+
+ CREATE TABLE LogProduto(IdTabela NUMBER,  NomeColuna VARCHAR2(100) NOT NULL, ConteudoCampo VARCHAR2(100) NOT NULL, Evento VARCHAR2(100) NOT NULL);
+
+-- Exemplo Antes da atualização
+
+CREATE OR REPLACE TRIGGER antesUpdateProduto
+BEFORE UPDATE ON Produto
+REFERENCING OLD AS Old
+FOR EACH ROW
+
+DECLARE
+    linhaId Produto.Id%Type;
+    linhaValor Produto.Valor%Type;
+    linhaDescricao Produto.Descricao%Type;
+BEGIN
+    linhaId := :Old.ID;
+    linhaValor := :New.Valor;
+    linhaDescricao := :Old.Descricao;
+    
+    RAISE_APPLICATION_ERROR(-20000, 'ERRO AO ATUALIZAR O ID ' || linhaId || ' VALOR ' || linhaValor || ' DESCRICAO ' || linhaDescricao);
+END;
+
+
+CREATE OR REPLACE TRIGGER antesUpdateProduto
+BEFORE UPDATE ON Produto
+REFERENCING OLD AS Old
+FOR EACH ROW
+
+--- Exemplo sem o Raise_Application_Error
+
+CREATE OR REPLACE TRIGGER antesUpdateProduto
+BEFORE UPDATE ON Produto
+REFERENCING OLD AS Old
+FOR EACH ROW
+
+DECLARE
+    linhaId Produto.Id%Type;
+    linhaValor Produto.Valor%Type;
+    linhaDescricao Produto.Descricao%Type;
+    linhaQtd Produto.QtdNoOrcamento%Type;
+BEGIN
+    linhaId := :Old.ID;
+    linhaValor := :OLD.Valor;
+    linhaDescricao := :Old.Descricao;
+    linhaQtd := :Old.QtdNoOrcamento;
+   
+    INSERT INTO LogProduto(IdTabela,  NomeColuna, ConteudoCampo, Evento) VALUES (linhaId, 'Valor', To_Char(linhaValor), 'Valor Produto');
+    INSERT INTO LogProduto(IdTabela,  NomeColuna, ConteudoCampo, Evento) VALUES (linhaId, 'QtdNoOrcamento', To_Char(linhaQtd), 'Qtde Orcamento Produto');
+END;
+
+
+
+
+
+
+
+UPDATE Produto SET VALOR = 10 WHERE ID = 1
+
+SELECT * FROM PRODUTO WHERE ID = 8;
+
+SELECT * FROM LogProduto
+
+
+
+-----
+
+
+CREATE OR REPLACE TRIGGER antesDeDeletarOrcamento
+BEFORE UPDATE OR DELETE ON Orcamento
+REFERENCING Old AS Old
+FOR EACH ROW
+
+DECLARE
+    linhaId Orcamento.Id%Type;
+BEGIN
+    linhaId := :Old.ID;
+  
+    IF linhaId = 1 THEN
+        RAISE_APPLICATION_ERROR(-20000, 'O registro 1 NÃO PODE SER APAGADO POIS É TESTADO NO AMBIENTE DE PRODUÇÃO');
+    END IF;
+END;
+
+DELETE FROM Orcamento WHERE ID = 1
+
+UPDATE Orcamento SET VALORVENDA = 10 WHERE ID = 1
+
+SELECT * FROM Orcamento
+
+
+DROP TRIGGER antesDeDeletarOrcamento
+
+-----------------
+
+CREATE OR REPLACE TRIGGER somarQtdOrcamentosPorProduto
+AFTER INSERT ON Orcamento
+REFERENCING NEW AS New 
+FOR EACH ROW
+
+DECLARE
+    idProduto Orcamento.IdProduto%Type;
+    somarQtd NUMBER;
+BEGIN
+    idProduto := :New.IdProduto;
+    SELECT QtdNoOrcamento INTO somarQtd FROM Produto WHERE ID = idProduto;
+    
+    somarQtd := somarQtd + 1;
+    UPDATE Produto SET QtdNoOrcamento = somarQtd WHERE Id = idProduto;
+END;
+
+
+SELECT * FROM Orcamento
+
+SELECT * FROM PRODUTO ORDER BY QtdNoOrcamento DESC
+select * FROM LOGPRODUTO WHERE IDTabela = 8
+
+ALTER TABLE PRODUTO ADD QtdNoOrcamento NUMBER DEFAULT(1)
+
+udpate 
+
+
+INSERT INTO Orcamento(Id, IdProduto, ValorVenda, Quantidade)
+VALUES(i, ROUND(DBMS_RANDOM.VALUE(1, 10)), ROUND(DBMS_RANDOM.VALUE(1000, 10000), 2), ROUND(DBMS_RANDOM.VALUE(1, 100)));
+
+BEGIN
+  FOR i IN 1..100 LOOP
+    INSERT INTO Orcamento(Id, IdProduto, ValorVenda, Quantidade)
+    VALUES(i, ROUND(DBMS_RANDOM.VALUE(1, 10)), ROUND(DBMS_RANDOM.VALUE(1000, 10000), 2), ROUND(DBMS_RANDOM.VALUE(1, 100)));
+  END LOOP;
+  
+  COMMIT;
+END;
+
+
+UPDATE PRODUTO SET QtdNoOrcamento = 17 where id = 8
+
+
+
+--- Exemplo COMPLEXOS
+
+CREATE OR REPLACE TRIGGER TBU_PRODUTO
+  BEFORE INSERT OR UPDATE ON PRODUTO
+    FOR EACH ROW
+     BEGIN
+       IF INSERTING THEN 
+         :NEW.log := 'INSERT';
+       ELSIF UPDATING THEN
+         :NEW.LOG :=  'UPDATE';
+       END IF;
+     END;
+
+
+-- Aula 4 Package
+-- Exemplos Simples
+
+--Package Especificação
+
+CREATE OR REPLACE PACKAGE ExemploAulaQuatro IS
+    FUNCTION Somar(numeroUm NUMBER, numeroDois Number) RETURN NUMBER;
+    PROCEDURE ExibirMensagem(nome VARCHAR2);
+END;
+
+-- Package Body
+CREATE OR REPLACE PACKAGE BODY ExemploAulaQuatro IS
+    FUNCTION Somar(numeroUm NUMBER, numeroDois Number) RETURN NUMBER IS 
+        
+        resultadoDaSoma NUMBER;
+        BEGIN 
+            resultadoDaSoma := numeroUm + numeroDois;
+            RETURN resultadoDaSoma;
+        END;
+        
+    PROCEDURE ExibirMensagem(nome VARCHAR2) IS
+        BEGIN
+            DBMS_OUTPUT.PUT_LINE('Olá, ' || nome || '! Bem-vindo(a)!');
+        END;
+
+END;
+
+
+-- Execução
+DECLARE 
+    resultadoLocal NUMBER;
+
+BEGIN
+    
+    resultadoLocal := ExemploAulaQuatro.Somar('1', '2');
+    DBMS_OUTPUT.PUT_LINE('Resultado da Soma é ' || resultadoLocal);
+
+    ExemploAulaQuatro.ExibirMensagem('Jamil');
+END; 
